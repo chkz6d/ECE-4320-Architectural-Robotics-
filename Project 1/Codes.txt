@@ -1,0 +1,102 @@
+//Servo9
+#include<Servo.h>
+
+int servoPin=6;
+Servo Servo1;
+
+
+//UltraSonicSensor variables
+int trigPin = 4;
+int echoPin = 3;
+float duration_us, distance_cm;
+
+//LED lights
+const int LED_PIN = 2;
+
+//BUTTON
+const int BUTTON_PIN = 7;
+int buttonState = 0; 
+
+void setup() 
+{
+  // begin serial port
+  Serial.begin (9600);
+  
+  // configure the trigger pin to output mode
+  pinMode(trigPin, OUTPUT);
+  // configure the echo pin to input mode
+  pinMode(echoPin, INPUT);
+
+  //servo setup 
+  Servo1.attach(servoPin);
+
+  //LED setup
+  pinMode(LED_PIN, OUTPUT);
+
+  //BUTTON setup
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
+}
+
+void loop() 
+{
+  //read the state of the switch/button
+  buttonState = digitalRead(BUTTON_PIN);
+  Serial.println(buttonState);
+
+
+  // when button is pressedq
+  if (buttonState == HIGH)
+  {
+       //LED ON and OFF
+       digitalWrite(LED_PIN, HIGH);
+
+       //OPENS THE DOOR
+       Servo1.write(180);
+       delay(6000);
+       Servo1.write(0);
+       delay(3000);
+       digitalWrite(LED_PIN, LOW);
+       exit;
+  }
+  // generate 10-microsecond pulse to TRIG pin
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  // measure duration of pulse from ECHO pin
+  duration_us = pulseIn(echoPin, HIGH);
+
+  // calculate the distance
+  distance_cm = 0.017 * duration_us;
+
+  // print the value to Serial Monitor
+  Serial.print("Distance:  ");
+  Serial.print(distance_cm);
+  Serial.println(" cm");
+
+  delay(500);
+
+  //When a person is 15cm away from the door, turns a light on
+  if(distance_cm <= 15)
+  {
+      //LED on
+      digitalWrite(LED_PIN, HIGH);
+      //When a person is 5 cm away from the door, opens the door
+      if (distance_cm <= 5)
+      {
+        //OPENS THE DOOR
+        Servo1.write(360);
+        delay(6000);
+        Servo1.write(0);
+        delay(2000);
+        digitalWrite(LED_PIN, LOW);
+      }
+      
+  }
+  //The light turns off when a person is 30 cm away from the door
+  if (distance_cm >= 30)
+  {
+    digitalWrite(LED_PIN, LOW);
+  }
+
+}
